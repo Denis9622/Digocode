@@ -73,21 +73,33 @@ app.view.addEventListener("click", (event) => {
   createRandomShape(x, 0);
 });
 
-setInterval(() => {
+let shapeInterval = setInterval(() => {
   createRandomShape(Math.random() * app.renderer.width, 0);
 }, 1000 / spawnRate);
 
 document.getElementById("increaseShapes").addEventListener("click", () => {
   spawnRate++;
+  clearInterval(shapeInterval);
+  shapeInterval = setInterval(() => {
+    createRandomShape(Math.random() * app.renderer.width, 0);
+  }, 1000 / spawnRate);
+  document.getElementById("spawnRateValue").textContent = spawnRate;
 });
 document.getElementById("decreaseShapes").addEventListener("click", () => {
   if (spawnRate > 1) spawnRate--;
+  clearInterval(shapeInterval);
+  shapeInterval = setInterval(() => {
+    createRandomShape(Math.random() * app.renderer.width, 0);
+  }, 1000 / spawnRate);
+  document.getElementById("spawnRateValue").textContent = spawnRate;
 });
 document.getElementById("increaseGravity").addEventListener("click", () => {
   gravity++;
+  document.getElementById("gravityValue").textContent = gravity;
 });
 document.getElementById("decreaseGravity").addEventListener("click", () => {
   if (gravity > 1) gravity--;
+  document.getElementById("gravityValue").textContent = gravity;
 });
 
 const textStyle = new PIXI.TextStyle({
