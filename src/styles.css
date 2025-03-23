@@ -1,18 +1,27 @@
+:root {
+  --background-color: #f0f0f0;
+  --text-color: #333;
+  --paragraph-color: #666;
+  --button-bg-color: #007bff;
+  --button-hover-bg-color: #0056b3;
+  --canvas-bg-color: #eeeeee;
+}
+
 body {
   text-align: center;
   font-family: Arial, sans-serif;
-  background-color: #f0f0f0;
+  background-color: var(--background-color);
   margin: 0;
   padding: 0;
 }
 
 h1 {
-  color: #333;
+  color: var(--text-color);
   margin-top: 20px;
 }
 
 p {
-  color: #666;
+  color: var(--paragraph-color);
 }
 
 .controls {
@@ -24,14 +33,14 @@ button {
   padding: 10px 20px;
   margin: 5px;
   border: none;
-  background-color: #007bff;
+  background-color: var(--button-bg-color);
   color: white;
   border-radius: 5px;
   cursor: pointer;
 }
 
 button:hover {
-  background-color: #0056b3;
+  background-color: var(--button-hover-bg-color);
 }
 
 #canvas-container {
@@ -39,7 +48,7 @@ button:hover {
   position: relative;
   width: 800px;
   height: 600px;
-  background-color: #eeeeee;
+  background-color: var(--canvas-bg-color);
   overflow: hidden;
   margin-top: 20px;
 }

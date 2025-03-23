@@ -1,3 +1,4 @@
+// Создание приложения Pixi.js
 const app = new PIXI.Application({
   width: 800,
   height: 600,
@@ -15,7 +16,9 @@ app.stage.addChild(shapesContainer);
 let gravity = 1;
 let spawnRate = 1;
 let shapes = [];
+let clickedOnShape = false; // Флаг для определения клика по фигуре
 
+// Функция создания случайной фигурки
 function createRandomShape(x, y) {
   const shapeTypes = ["triangle", "rectangle", "pentagon", "circle"];
   const type = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
@@ -48,6 +51,7 @@ function createRandomShape(x, y) {
   shape.on("pointerdown", () => {
     shapesContainer.removeChild(shape);
     shapes = shapes.filter((s) => s !== shape);
+    clickedOnShape = true; // Устанавливаем флаг клика по фигуре
     updateTextFields();
   });
 
@@ -56,6 +60,7 @@ function createRandomShape(x, y) {
   updateTextFields();
 }
 
+// Тикер для управления гравитацией
 app.ticker.add(() => {
   shapes.forEach((shape) => {
     shape.y += gravity;
@@ -67,12 +72,36 @@ app.ticker.add(() => {
   });
 });
 
+// Обработчик кликов, добавляющий фигурки только на пустое место
 app.view.addEventListener("click", (event) => {
+  if (clickedOnShape) {
+    // Сбрасываем флаг и выходим, если был клик по фигуре
+    clickedOnShape = false;
+    return;
+  }
+
   const rect = app.view.getBoundingClientRect();
   const x = event.clientX - rect.left;
-  createRandomShape(x, 0);
+  const y = event.clientY - rect.top;
+
+  // Проверка на пересечение клика с существующими фигурами
+  const isOverlapping = shapes.some((shape) => {
+    const bounds = shape.getBounds();
+    return (
+      x >= bounds.x &&
+      x <= bounds.x + bounds.width &&
+      y >= bounds.y &&
+      y <= bounds.y + bounds.height
+    );
+  });
+
+  // Если клик по пустому месту, создаём новую фигуру
+  if (!isOverlapping) {
+    createRandomShape(x, y);
+  }
 });
 
+// Управление количеством фигур и гравитацией
 let shapeInterval = setInterval(() => {
   createRandomShape(Math.random() * app.renderer.width, 0);
 }, 1000 / spawnRate);
@@ -102,6 +131,7 @@ document.getElementById("decreaseGravity").addEventListener("click", () => {
   document.getElementById("gravityValue").textContent = gravity;
 });
 
+// Добавление текстов для отображения информации
 const textStyle = new PIXI.TextStyle({
   fontFamily: "Arial",
   fontSize: 24,

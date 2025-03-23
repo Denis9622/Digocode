@@ -1,83 +1,74 @@
+import { ShapeSpawner } from "./shapeSpawner.js";
+
 export class Controller {
   constructor(model, view) {
     this.model = model;
     this.view = view;
-    this.shapeInterval = null;
+    this.shapeSpawner = new ShapeSpawner(model, view);
   }
 
   init() {
-    this.view.app.view.addEventListener("click", (event) => {
-      const rect = this.view.app.view.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      this.createRandomShape(x, 0);
+    // Register event handlers for view events
+    this.view.on("canvasClick", (x, y) => {
+      this.shapeSpawner.createRandomShape(x, y);
     });
 
-    document.getElementById("increaseShapes").addEventListener("click", () => {
+    this.view.on("increaseShapes", () => {
       this.model.updateSpawnRate(this.model.getSpawnRate() + 1);
-      this.updateShapeInterval();
+      this.shapeSpawner.updateShapeInterval();
       this.view.updateSpawnRateValue(this.model.getSpawnRate());
+      this.view.updateDecreaseButtonState(this.model.getSpawnRate());
     });
 
-    document.getElementById("decreaseShapes").addEventListener("click", () => {
+    this.view.on("decreaseShapes", () => {
       if (this.model.getSpawnRate() > 1) {
         this.model.updateSpawnRate(this.model.getSpawnRate() - 1);
-        this.updateShapeInterval();
+        this.shapeSpawner.updateShapeInterval();
         this.view.updateSpawnRateValue(this.model.getSpawnRate());
+        this.view.updateDecreaseButtonState(this.model.getSpawnRate());
       }
     });
 
-    document.getElementById("increaseGravity").addEventListener("click", () => {
+    this.view.on("increaseGravity", () => {
       this.model.updateGravity(this.model.getGravity() + 1);
       this.view.updateGravityValue(this.model.getGravity());
     });
 
-    document.getElementById("decreaseGravity").addEventListener("click", () => {
+    this.view.on("decreaseGravity", () => {
       if (this.model.getGravity() > 1) {
         this.model.updateGravity(this.model.getGravity() - 1);
         this.view.updateGravityValue(this.model.getGravity());
       }
     });
 
+    // Start shape spawner and update button state
+    this.shapeSpawner.start();
+    this.view.updateDecreaseButtonState(this.model.getSpawnRate());
+  }
+}
+
+class ShapeController {
+  constructor(model, view) {
+    this.model = model;
+    this.view = view;
+  }
+
+  // Start ticker for falling shapes
+  startFallTicker() {
     this.view.app.ticker.add(() => {
       this.model.getShapes().forEach((shape) => {
         shape.y += this.model.getGravity();
-        if (shape.y > this.view.app.renderer.height) {
+        if (shape.y - shape.height > this.view.app.renderer.height) {
+          // Remove shape if it falls out of the screen
           this.view.removeShapeFromContainer(shape);
           this.model.removeShape(shape);
           this.updateTextFields();
         }
       });
     });
-
-    this.updateShapeInterval();
   }
 
-  createRandomShape(x, y) {
-    const shapeTypes = ["triangle", "rectangle", "pentagon", "circle"];
-    const type = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
-    const color = Math.random() * 0xffffff;
-    const shape = this.view.createShape(type, color, x, y);
-
-    shape.on("pointerdown", () => {
-      this.view.removeShapeFromContainer(shape);
-      this.model.removeShape(shape);
-      this.updateTextFields();
-    });
-
-    this.view.addShapeToContainer(shape);
-    this.model.addShape(shape);
-    this.updateTextFields();
-  }
-
-  updateShapeInterval() {
-    if (this.shapeInterval) {
-      clearInterval(this.shapeInterval);
-    }
-    this.shapeInterval = setInterval(() => {
-      this.createRandomShape(Math.random() * this.view.app.renderer.width, 0);
-    }, 1000 / this.model.getSpawnRate());
-  }
-
+  // Update text fields for shapes count and area
   updateTextFields() {
     this.view.updateShapesCount(this.model.getShapes().length);
     const totalArea = this.model
