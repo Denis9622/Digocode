@@ -1,4 +1,3 @@
-// Создание приложения Pixi.js
 const app = new PIXI.Application({
   width: 800,
   height: 600,
@@ -16,9 +15,8 @@ app.stage.addChild(shapesContainer);
 let gravity = 1;
 let spawnRate = 1;
 let shapes = [];
-let clickedOnShape = false; // Флаг для определения клика по фигуре
+let clickedOnShape = false;
 
-// Функция создания случайной фигурки
 function createRandomShape(x, y) {
   const shapeTypes = ["triangle", "rectangle", "pentagon", "circle"];
   const type = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
@@ -51,7 +49,7 @@ function createRandomShape(x, y) {
   shape.on("pointerdown", () => {
     shapesContainer.removeChild(shape);
     shapes = shapes.filter((s) => s !== shape);
-    clickedOnShape = true; // Устанавливаем флаг клика по фигуре
+    clickedOnShape = true;
     updateTextFields();
   });
 
@@ -60,7 +58,6 @@ function createRandomShape(x, y) {
   updateTextFields();
 }
 
-// Тикер для управления гравитацией
 app.ticker.add(() => {
   shapes.forEach((shape) => {
     shape.y += gravity;
@@ -72,10 +69,8 @@ app.ticker.add(() => {
   });
 });
 
-// Обработчик кликов, добавляющий фигурки только на пустое место
 app.view.addEventListener("click", (event) => {
   if (clickedOnShape) {
-    // Сбрасываем флаг и выходим, если был клик по фигуре
     clickedOnShape = false;
     return;
   }
@@ -84,7 +79,6 @@ app.view.addEventListener("click", (event) => {
   const x = event.clientX - rect.left;
   const y = event.clientY - rect.top;
 
-  // Проверка на пересечение клика с существующими фигурами
   const isOverlapping = shapes.some((shape) => {
     const bounds = shape.getBounds();
     return (
@@ -95,43 +89,59 @@ app.view.addEventListener("click", (event) => {
     );
   });
 
-  // Если клик по пустому месту, создаём новую фигуру
   if (!isOverlapping) {
     createRandomShape(x, y);
   }
 });
 
-// Управление количеством фигур и гравитацией
 let shapeInterval = setInterval(() => {
   createRandomShape(Math.random() * app.renderer.width, 0);
 }, 1000 / spawnRate);
 
-document.getElementById("increaseShapes").addEventListener("click", () => {
+// Кнопки управления
+const increaseButton = document.getElementById("increaseShapes");
+const decreaseButton = document.getElementById("decreaseShapes");
+const spawnRateValue = document.getElementById("spawnRateValue");
+
+increaseButton.addEventListener("click", () => {
   spawnRate++;
+  resetShapeInterval();
+  spawnRateValue.textContent = spawnRate;
+  updateDecreaseButtonState();
+});
+
+decreaseButton.addEventListener("click", () => {
+  if (spawnRate > 1) {
+    spawnRate--;
+    resetShapeInterval();
+    spawnRateValue.textContent = spawnRate;
+    updateDecreaseButtonState();
+  }
+});
+
+function resetShapeInterval() {
   clearInterval(shapeInterval);
   shapeInterval = setInterval(() => {
     createRandomShape(Math.random() * app.renderer.width, 0);
   }, 1000 / spawnRate);
-  document.getElementById("spawnRateValue").textContent = spawnRate;
-});
-document.getElementById("decreaseShapes").addEventListener("click", () => {
-  if (spawnRate > 1) spawnRate--;
-  clearInterval(shapeInterval);
-  shapeInterval = setInterval(() => {
-    createRandomShape(Math.random() * app.renderer.width, 0);
-  }, 1000 / spawnRate);
-  document.getElementById("spawnRateValue").textContent = spawnRate;
-});
+}
+
+function updateDecreaseButtonState() {
+  decreaseButton.disabled = spawnRate <= 1;
+}
+
+updateDecreaseButtonState();
+
 document.getElementById("increaseGravity").addEventListener("click", () => {
   gravity++;
   document.getElementById("gravityValue").textContent = gravity;
 });
+
 document.getElementById("decreaseGravity").addEventListener("click", () => {
   if (gravity > 1) gravity--;
   document.getElementById("gravityValue").textContent = gravity;
 });
 
-// Добавление текстов для отображения информации
 const textStyle = new PIXI.TextStyle({
   fontFamily: "Arial",
   fontSize: 24,
